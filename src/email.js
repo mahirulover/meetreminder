@@ -5,6 +5,7 @@
 
 import nodemailer from 'nodemailer';
 import dayjs from 'dayjs';
+import { createEvent } from 'ics';
 
 // ====================================
 // 建立 Gmail SMTP 傳輸器
@@ -100,6 +101,35 @@ function buildEmailHTML(meeting, type = 'notification') {
 }
 
 /**
+ * 產生會議的 iCalendar (.ics) 事件物件
+ * @param {Object} meeting - 會議資料
+ * @returns {Object|null} nodemailer 的 icalEvent 設定物件
+ */
+function getIcalEvent(meeting) {
+  const start = dayjs(meeting.datetime);
+  const event = {
+    start: [start.year(), start.month() + 1, start.date(), start.hour(), start.minute()],
+    duration: { hours: 1, minutes: 0 }, // 預設會議長度 1 小時
+    title: meeting.title,
+    location: meeting.location,
+    status: 'CONFIRMED',
+    organizer: { name: '會議小助手', email: process.env.GMAIL_USER || 'bot@example.com' },
+  };
+  
+  const { error, value } = createEvent(event);
+  if (error) {
+    console.error('❌ 生成 ics 失敗：', error);
+    return null;
+  }
+  
+  return {
+    filename: 'meeting.ics',
+    method: 'request',
+    content: value
+  };
+}
+
+/**
  * 發送會議通知郵件
  * 當新會議建立時，通知所有與會者
  * @param {Object} meeting - 會議資料（包含 title, datetime, location, emails）
@@ -120,6 +150,9 @@ export async function sendMeetingNotification(meeting) {
       subject: `📅 會議通知：${meeting.title}`,
       html,
     };
+
+    const ical = getIcalEvent(meeting);
+    if (ical) mailOptions.icalEvent = ical;
 
     const info = await transporter.sendMail(mailOptions);
     console.log(`✅ 會議通知郵件已成功發送：${info.messageId}`);
@@ -150,6 +183,9 @@ export async function sendReminderEmail(meeting) {
       subject: `⏰ 會議提醒：${meeting.title} 即將開始`,
       html,
     };
+
+    const ical = getIcalEvent(meeting);
+    if (ical) mailOptions.icalEvent = ical;
 
     const info = await transporter.sendMail(mailOptions);
     console.log(`✅ 會議提醒郵件已成功發送：${info.messageId}`);
