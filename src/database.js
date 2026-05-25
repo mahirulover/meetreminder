@@ -57,7 +57,7 @@ export function createMeeting({ userId, title, datetime, location, emails }) {
   // 回傳新建立的會議，包含自動產生的 ID
   return {
     id: result.lastInsertRowid,
-    userId,
+    user_id: userId,
     title,
     datetime,
     location,
