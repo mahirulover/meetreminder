@@ -1,0 +1,20 @@
+{
+  "name": "line-meeting-bot",
+  "version": "1.0.0",
+  "description": "LINE Bot 會議提醒系統 - 建立會議、寄送 Email、2小時前 LINE 提醒",
+  "type": "module",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js"
+  },
+  "dependencies": {
+    "@line/bot-sdk": "^9.7.0",
+    "better-sqlite3": "^11.8.0",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "nodemailer": "^6.10.0",
+    "node-schedule": "^2.1.1"
+  }
+}
